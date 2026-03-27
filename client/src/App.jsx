@@ -1,4 +1,8 @@
 import { useState , useEffect} from "react";
+import Header from "./components/Header";
+import Title from "./components/Title";
+import TimeSelection from "./components/TimeSelection";
+import Recommendation from "./components/Recommendation";
 
 function App() {
 
@@ -23,15 +27,21 @@ function App() {
 
 
   return (
-    <>
-{
+    <div className = "bg-[#F9F9F9] min-h-screen overflow-hidden ">
+      <Header/>
+      <Title/>
+      <TimeSelection/>
+      <Recommendation/>
+      
+{/* {
   tasks.map((task)=>{
     return(
       <p key={task._id}>{task.title}</p>
     )
   })
-}
-    </>
+} */}
+
+    </div>
   )
 }
 

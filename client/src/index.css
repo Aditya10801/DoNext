@@ -1,3 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* UI Palette based on reference */
+  --color-bg-deep: #000015;
+  --color-card-bg-dark: #0A0F1E;
+  --color-bet-info-bg: #1A1F2E;
+  --color-card-border: #2A303F;
+  --color-accent-blue: #2E5BFD;
+  --color-gradient-start: #1D3DFF;
+  --color-gradient-end: #0D0F2E;
+  --color-withdraw-bg: #FFFFFF;
+  --color-deposit-bg: rgba(46, 91, 253, 0.2);
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.7);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-deep);
+    color: var(--color-text-primary);
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* Gradient Panel background from reference */
+  .gradient-header {
+    background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+    @apply p-6 pt-12 pb-10;
+  }
+
+  /* Main Account Card Style */
+  .account-panel {
+    background-color: var(--color-card-bg-dark);
+    @apply p-6 rounded-[28px] border border-[--color-card-border] shadow-2xl;
+  }
+
+  /* Active Bet Card Style */
+  .bet-card {
+    background-color: var(--color-bet-info-bg);
+    @apply p-5 rounded-2xl flex flex-col items-center flex-1 border border-[--color-card-border];
+  }
+
+  /* Interactive Elements */
+  .btn-withdraw {
+    background-color: var(--color-withdraw-bg);
+    color: #000000;
+    @apply rounded-full px-6 py-3 font-semibold text-sm transition-opacity hover:opacity-90 flex-1;
+  }
+
+  .btn-deposit {
+    background-color: var(--color-deposit-bg);
+    color: var(--color-accent-blue);
+    border: 1px solid var(--color-accent-blue);
+    @apply rounded-full px-6 py-3 font-semibold text-sm transition-colors hover:bg-opacity-40 flex-1;
+  }
+
+  .accent-label {
+    @apply text-xs uppercase tracking-wider text-[--color-accent-blue] font-bold mb-3 block;
+  }
+}

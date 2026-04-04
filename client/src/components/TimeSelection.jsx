@@ -1,35 +1,53 @@
-import React, { useState } from 'react';
+import { useState } from "react";
 
-export default function TimeSelection() {
-  const [selectedTime, setSelectedTime] = useState('60m');
-  const options = ['15m', '30m', '45m', '60m'];
+export default function TimeSelection({ selectedTime, setSelectedTime, onStart }) {
+  const options = [15, 30, 45, 60];
+  const [isCustom, setIsCustom] = useState(false);
 
   return (
- 
-    <div className="px-[30px] py-[20px] w-fit">
-      <p className="text-[#5A6061] text-sm font-semibold mb-5">Available Time</p>
-      
-      <div className="flex gap-4">
-        {options.map((time) => (
-          <button
-            key={time}
-            onClick={() => setSelectedTime(time)}
-            className={`
-              w-[70px] py-[14px] rounded-xl text-md font-medium transition-all
-              ${selectedTime === time 
-                ? 'bg-[#E0E7FF] text-[#5A6061] shadow-sm ring-1 ring-black/5' 
-                : 'bg-[#E9EDEE] text-[#5A6061] hover:bg-[#DEE3E4]'           
-              }
-            `}
+    <div className="space-y-8 text-center">
+      <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-wrap justify-center gap-3">
+          {options.map((t) => (
+            <button 
+              key={t} 
+              onClick={() => { setSelectedTime(t); setIsCustom(false); }} 
+              className={`w-16 h-16 rounded-2xl text-xl font-bold transition-all border-2 
+                ${selectedTime === t && !isCustom 
+                  ? "bg-[#6C5CE7] border-[#6C5CE7] text-white shadow-lg" 
+                  : "bg-white border-[#F1F2F6] text-[#636E72]"}`}
+            >
+              {t}
+            </button>
+          ))}
+          <button 
+            onClick={() => setIsCustom(true)}
+            className={`w-16 h-16 rounded-2xl text-xl font-bold transition-all border-2 
+              ${isCustom ? "border-[#6C5CE7] text-[#6C5CE7] bg-[#F1F2F6]" : "border-[#F1F2F6] text-[#B2BEC3]"}`}
           >
-            {time}
+            +
           </button>
-        ))}
+        </div>
+
+        {isCustom && (
+          <div className="animate-in slide-in-from-top-2 duration-300">
+            <input 
+              type="number"
+              autoFocus
+              placeholder="Enter mins..."
+              onChange={(e) => setSelectedTime(Number(e.target.value))}
+              className="bg-[#F1F2F6] border-2 border-[#6C5CE7] rounded-xl px-4 py-2 w-32 text-center font-bold text-[#6C5CE7] outline-none"
+            />
+          </div>
+        )}
       </div>
-      
-      <div className="bg-gradient-to-r from-[#505E82] to-[#445275] text-[#F7F7FF] font-bold flex flex-cols justify-center items-center w-full py-[14px] rounded-xl mt-5 cursor-pointer">
-Do Next
-      </div>
+
+      <button 
+        onClick={onStart} 
+        className="w-full bg-[#00B894] hover:bg-[#00A383] text-white py-5 rounded-2xl font-bold text-lg shadow-sm transition-all active:scale-95"
+      >
+        Initialize Focus Sequence
+      </button>
     </div>
   );
 }

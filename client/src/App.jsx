@@ -175,7 +175,7 @@ function App() {
                 </div>
               )
             } />
-            <Route path="/add" element={<BulkAddView onInject={fetchTasks} userKey={userKey} />} />
+            <Route path="/add" element={<BulkAddView onInject={fetchTasks} userKey={userKey} apiBase={API_BASE} />} />
           </Routes>
         </main>
 

@@ -1,4 +1,4 @@
-const task = require("../models/task");
+const Task = require("../models/task");
 
 const getAuthKey = (req) => req.headers['x-flux-key'];
 

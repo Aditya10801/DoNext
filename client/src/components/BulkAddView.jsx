@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function BulkAddView({ onInject, userKey }) {
+export default function BulkAddView({ onInject, userKey, apiBase }) {
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(30);
   const [isCustom, setIsCustom] = useState(false);
@@ -20,7 +20,7 @@ export default function BulkAddView({ onInject, userKey }) {
     setLoading(true);
     try {
       const requests = queue.map(t => 
-        fetch("http://localhost:3000/api/tasks", {
+        fetch(apiBase, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",

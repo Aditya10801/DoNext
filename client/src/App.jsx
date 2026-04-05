@@ -6,6 +6,11 @@ import Recommendation from "./components/Recommendation";
 import BulkAddView from "./components/BulkAddView";
 
 function App() {
+  // --- IDENTITY STATE ---
+  const [userKey, setUserKey] = useState(localStorage.getItem("FLUX_KEY"));
+  const [entryKey, setEntryKey] = useState("");
+
+  // --- TASK STATE ---
   const [tasks, setTasks] = useState([]);
   const [selectedTime, setSelectedTime] = useState(30);
   const [activeTask, setActiveTask] = useState(null);
@@ -13,16 +18,44 @@ function App() {
 
   const location = useLocation();
 
+  // --- CONFIGURATION ---
+  // Ensure your .env has: VITE_API=http://localhost:3000/api/tasks
+  const API_BASE = import.meta.env.VITE_API;
+
+  // --- SYNC LOGIC ---
   const fetchTasks = async () => {
+    if (!userKey || !API_BASE) return;
     try {
-      const response = await fetch("http://localhost:3000/api/tasks");
+      const response = await fetch(API_BASE, {
+        headers: { "x-flux-key": userKey }
+      });
       const data = await response.json();
       setTasks(data.tasks || []);
-    } catch (err) { console.error("Sync Error"); }
+    } catch (err) {
+      console.error("CONNECTION_REJECTED // CHECK_SERVER_STATUS");
+    }
   };
 
-  useEffect(() => { fetchTasks(); }, []);
+  useEffect(() => {
+    fetchTasks();
+  }, [userKey]);
 
+  // --- AUTH HANDLERS ---
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!entryKey.trim()) return;
+    localStorage.setItem("FLUX_KEY", entryKey);
+    setUserKey(entryKey);
+  };
+
+  const handleLogout = () => {
+    if (window.confirm("TERMINATE_SESSION?")) {
+      localStorage.removeItem("FLUX_KEY");
+      window.location.reload();
+    }
+  };
+
+  // --- TASK LOGIC (THE WINDOW VS THE HORIZON) ---
   const { fits, epics } = useMemo(() => {
     const priorityScore = { high: 3, medium: 2, low: 1 };
     const sorted = [...tasks].sort((a, b) => {
@@ -32,13 +65,12 @@ function App() {
     });
 
     return {
-      // Fits = tasks shorter than time OR long tasks marked as 'Chippable'
       fits: sorted.filter(t => t.duration <= selectedTime || t.isChippable),
-      // Epics = long tasks that are NOT chippable
       epics: sorted.filter(t => t.duration > selectedTime && !t.isChippable)
     };
   }, [tasks, selectedTime]);
 
+  // --- SESSION HANDLERS (LIQUID DECAY) ---
   const handleStart = (task) => {
     setActiveTask(task);
     setStartTime(Date.now());
@@ -48,23 +80,76 @@ function App() {
     const elapsed = Math.floor((Date.now() - startTime) / 60000);
     const newDuration = activeTask.duration - elapsed;
 
-    await fetch(`http://localhost:3000/api/tasks/${activeTask._id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ duration: newDuration }),
-    });
+    try {
+      await fetch(`${API_BASE}/${activeTask._id}`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json", 
+          "x-flux-key": userKey 
+        },
+        body: JSON.stringify({ duration: newDuration }),
+      });
 
-    setActiveTask(null);
-    setStartTime(null);
-    fetchTasks();
+      setActiveTask(null);
+      setStartTime(null);
+      fetchTasks();
+    } catch (err) {
+      console.error("UPDATE_FAILED");
+    }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Discard this objective?")) return;
-    await fetch(`http://localhost:3000/api/tasks/${id}`, { method: "DELETE" });
-    fetchTasks();
+    if (!window.confirm("DISCARD_OBJECTIVE?")) return;
+    try {
+      await fetch(`${API_BASE}/${id}`, { 
+        method: "DELETE",
+        headers: { "x-flux-key": userKey }
+      });
+      fetchTasks();
+    } catch (err) {
+      console.error("DELETE_FAILED");
+    }
   };
 
+  // --- VIEW: IDENTITY CHALLENGE (AUTH WALL) ---
+  if (!userKey) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 text-white uppercase tracking-tight">
+        <form onSubmit={handleLogin} className="w-full max-w-sm space-y-12 animate-in fade-in zoom-in duration-700">
+          <div className="space-y-2 text-center sm:text-left">
+            <h1 className="text-4xl font-serif italic lowercase">Flux<span className="text-[#6b6a67] not-italic">_</span></h1>
+            <p className="font-mono text-[9px] text-[#6b6a67] tracking-[0.3em]">IDENTITY_CHALLENGE</p>
+          </div>
+
+          <div className="space-y-6">
+            <input 
+              type="password"
+              autoFocus
+              placeholder="ENTER_PRIVATE_KEY"
+              className="w-full bg-transparent border-b border-[#2e2d2b] py-4 font-mono text-sm outline-none focus:border-white transition-colors"
+              value={entryKey}
+              onChange={(e) => setEntryKey(e.target.value)}
+            />
+            <div className="space-y-3 p-5 border border-[#2e2d2b] bg-[#111110]">
+              <p className="font-mono text-[8px] leading-relaxed text-[#6b6a67] tracking-wider">
+                <span className="text-white">NOTICE //</span> YOUR KEY IS A PRIVATE ANCHOR. 
+                FLUX DOES NOT STORE PASSWORDS. THE STRING ENTERED WILL CREATE YOUR VAULT. 
+                IF LOST, DATA RECOVERY IS IMPOSSIBLE.
+                <br/><br/>
+                <span className="text-white">NEW USERS //</span> ANY UNIQUE STRING WORKS AS A KEY (E.G. "MY_VAULT_77").
+              </p>
+            </div>
+          </div>
+
+          <button className="w-full bg-white text-black py-5 font-bold text-[11px] tracking-[0.3em] hover:bg-[#fafafa] transition-all">
+            PROCEED
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  // --- VIEW: MAIN APP INTERFACE ---
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#fafafa] px-6 py-12 md:py-24 font-sans uppercase tracking-tight">
       <div className="max-w-[480px] mx-auto space-y-16">
@@ -72,10 +157,10 @@ function App() {
         
         {!activeTask && (
           <nav className="flex gap-12 border-b border-[#2e2d2b]">
-            <Link to="/" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative ${location.pathname === "/" ? "text-white" : "text-[#6b6a67]"}`}>
+            <Link to="/" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative transition-colors ${location.pathname === "/" ? "text-white" : "text-[#6b6a67]"}`}>
               Focus {location.pathname === "/" && <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white" />}
             </Link>
-            <Link to="/add" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative ${location.pathname === "/add" ? "text-white" : "text-[#6b6a67]"}`}>
+            <Link to="/add" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative transition-colors ${location.pathname === "/add" ? "text-white" : "text-[#6b6a67]"}`}>
               Compile {location.pathname === "/add" && <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white" />}
             </Link>
           </nav>
@@ -88,7 +173,7 @@ function App() {
                 <div className="text-center space-y-16 py-24 animate-in zoom-in duration-1000">
                   <div className="space-y-4">
                     <p className="font-mono text-[10px] text-[#6b6a67] tracking-[0.4em]">NOW_WORKING_ON</p>
-                    <h2 className="text-5xl font-serif italic text-white lowercase">{activeTask.title}</h2>
+                    <h2 className="text-5xl font-serif italic text-white lowercase leading-tight px-4">{activeTask.title}</h2>
                   </div>
                   <button onClick={handleFinish} className="border border-white px-12 py-4 font-mono text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all">
                     I'M DONE FOR NOW
@@ -101,9 +186,14 @@ function App() {
                 </div>
               )
             } />
-            <Route path="/add" element={<BulkAddView onInject={fetchTasks} />} />
+            <Route path="/add" element={<BulkAddView onInject={fetchTasks} userKey={userKey} />} />
           </Routes>
         </main>
+
+        <footer className="pt-12 border-t border-[#2e2d2b] text-[9px] font-mono text-[#2e2d2b] flex justify-between items-center">
+            <button onClick={handleLogout} className="hover:text-white transition-colors">TERMINATE_SESSION</button>
+            <span className="tracking-[0.2em]">©2026_FLUX_UNIT</span>
+        </footer>
       </div>
     </div>
   );

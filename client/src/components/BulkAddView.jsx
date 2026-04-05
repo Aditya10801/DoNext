@@ -1,87 +1,100 @@
 import { useState } from "react";
 
-export default function BulkAddView({ onInject, loading }) {
+export default function BulkAddView({ onInject }) {
   const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState(15);
+  const [duration, setDuration] = useState(30);
+  const [isCustom, setIsCustom] = useState(false);
   const [priority, setPriority] = useState("medium");
-  const [effort, setEffort] = useState("medium");
-  const [isCustomTime, setIsCustomTime] = useState(false);
+  const [isChippable, setIsChippable] = useState(false);
   const [queue, setQueue] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const addToQueue = () => {
-    if (!title.trim()) return;
-    setQueue([...queue, { title, duration: Number(duration), priority, effort }]);
-    setTitle(""); 
+    if (!title.trim() || !duration) return;
+    setQueue([...queue, { title, duration: Number(duration), priority, isChippable }]);
+    setTitle("");
+    setIsChippable(false);
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    const requests = queue.map(t => 
+      fetch("http://localhost:3000/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(t),
+      })
+    );
+    await Promise.all(requests);
+    setQueue([]);
+    onInject();
+    setLoading(false);
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in">
-      <div className="space-y-6 bg-[#FBFBFC] p-6 rounded-[2rem] border border-[#F1F2F6]">
-        {/* Title Input */}
+    <div className="space-y-12 animate-in fade-in">
+      <div className="space-y-10">
         <input
           autoFocus
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && addToQueue()}
-          placeholder="Objective name..."
-          className="w-full bg-white border border-[#E0E0E0] rounded-xl p-4 text-lg outline-none focus:border-[#6C5CE7] transition-all"
+          placeholder="Define objective..."
+          className="w-full bg-transparent border-b border-[#2e2d2b] py-4 text-3xl font-serif focus:border-white focus:outline-none placeholder:text-[#2e2d2b] text-white"
         />
 
-        <div className="space-y-4">
-          {/* Duration with Custom Toggle */}
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-[#B2BEC3]">Time (Mins)</span>
-            <div className="flex gap-2">
-              {[15, 30, 45].map(t => (
-                <button key={t} onClick={() => {setDuration(t); setIsCustomTime(false)}} className={`px-3 py-1 rounded-lg text-xs font-bold ${duration === t && !isCustomTime ? 'bg-[#6C5CE7] text-white' : 'bg-white text-[#B2BEC3] border border-[#F1F2F6]'}`}>{t}</button>
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <label className="font-mono text-[10px] text-[#6b6a67]">DURATION</label>
+            <div className="flex border border-[#2e2d2b]">
+              {[15, 30, 45, 60].map(d => (
+                <button key={d} onClick={() => {setDuration(d); setIsCustom(false)}} className={`px-4 py-2 font-mono text-[10px] ${duration === d && !isCustom ? "bg-white text-black" : "text-[#6b6a67]"}`}>{d}</button>
               ))}
-              <button onClick={() => setIsCustomTime(true)} className={`px-3 py-1 rounded-lg text-xs font-bold ${isCustomTime ? 'bg-[#6C5CE7] text-white' : 'bg-white text-[#B2BEC3] border border-[#F1F2F6]'}`}>Custom</button>
+              <button onClick={() => setIsCustom(true)} className={`px-4 py-2 font-mono text-[10px] ${isCustom ? "bg-white text-black" : "text-[#6b6a67]"}`}>+</button>
             </div>
           </div>
-          {isCustomTime && (
-            <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full p-2 rounded-lg bg-white border border-[#6C5CE7] text-center text-sm font-bold" />
+          
+          {isCustom && (
+            <input type="number" onChange={(e) => setDuration(e.target.value)} className="w-full bg-transparent border-b border-[#2e2d2b] py-2 font-mono text-sm text-white text-right outline-none" placeholder="00 MIN" />
           )}
 
-          {/* Priority Selection */}
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-[#B2BEC3]">Priority</span>
-            <div className="flex bg-[#F1F2F6] p-1 rounded-xl w-48">
-              {['low', 'medium', 'high'].map(p => (
-                <button key={p} onClick={() => setPriority(p)} className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${priority === p ? 'bg-white text-[#6C5CE7] shadow-sm' : 'text-[#B2BEC3]'}`}>{p}</button>
-              ))}
+          <div className="flex justify-between items-center">
+            <label className="font-mono text-[10px] text-[#6b6a67]">Can we splitted into chunks ?</label>
+            <div className="flex border border-[#2e2d2b]">
+              <button onClick={() => setIsChippable(true)} className={`px-6 py-2 font-mono text-[10px] ${isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>YES</button>
+              <button onClick={() => setIsChippable(false)} className={`px-6 py-2 font-mono text-[10px] ${!isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>NO</button>
             </div>
           </div>
 
-          {/* Effort Selection */}
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-[#B2BEC3]">Mental Effort</span>
-            <div className="flex bg-[#F1F2F6] p-1 rounded-xl w-48">
-              {['easy', 'medium', 'hard'].map(e => (
-                <button key={e} onClick={() => setEffort(e)} className={`flex-1 py-1.5 text-[10px] font-bold uppercase rounded-lg transition-all ${effort === e ? 'bg-white text-[#00B894] shadow-sm' : 'text-[#B2BEC3]'}`}>{e}</button>
+          <div className="flex justify-between items-center">
+            <label className="font-mono text-[10px] text-[#6b6a67]">PRIORITY</label>
+            <div className="flex border border-[#2e2d2b]">
+              {['low', 'medium', 'high'].map(p => (
+                <button key={p} onClick={() => setPriority(p)} className={`px-4 py-2 font-mono text-[10px] uppercase ${priority === p ? "bg-white text-black" : "text-[#6b6a67]"}`}>{p}</button>
               ))}
             </div>
           </div>
         </div>
 
-        <button onClick={addToQueue} className="w-full bg-[#2D3436] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-widest">+ Add to List</button>
+        <button onClick={addToQueue} className="w-full border border-white py-4 text-[11px] font-bold tracking-[0.1em] hover:bg-white hover:text-black">
+          ADD TO LIST
+        </button>
       </div>
 
-      {/* Queue List */}
       {queue.length > 0 && (
-        <div className="space-y-4">
-          <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
-            {queue.map((task, i) => (
-              <div key={i} className="flex justify-between items-center bg-white p-4 rounded-xl border border-[#F1F2F6] shadow-sm">
-                <div>
-                  <p className="font-bold text-sm text-[#2D3436]">{task.title}</p>
-                  <p className="text-[9px] uppercase font-black text-[#B2BEC3]">{task.duration}m • {task.priority} priority • {task.effort} effort</p>
+        <div className="space-y-6 pt-6 border-t border-[#2e2d2b]">
+          <div className="divide-y divide-[#2e2d2b]">
+            {queue.map((t, i) => (
+              <div key={i} className="py-4 flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-sm text-white lowercase">{t.title}</p>
+                  <p className="font-mono text-[9px] text-[#6b6a67]">{t.duration}M // {t.priority} {t.isChippable && "// CHIP_READY"}</p>
                 </div>
-                <button onClick={() => setQueue(queue.filter((_, idx) => idx !== i))} className="text-red-300 hover:text-red-500 text-xl">×</button>
+                <button onClick={() => setQueue(queue.filter((_, idx) => idx !== i))} className="text-[#6b6a67]">×</button>
               </div>
             ))}
           </div>
-          <button onClick={() => onInject(queue)} disabled={loading} className="w-full bg-[#6C5CE7] text-white py-5 rounded-2xl font-bold uppercase shadow-lg disabled:opacity-50">
-            {loading ? "Syncing..." : `Commit ${queue.length} Objectives`}
+          <button onClick={handleSave} className="w-full bg-white text-black py-5 font-bold text-[11px] tracking-[0.2em]">
+            {loading ? "SAVING..." : "SAVE EVERYTHING"}
           </button>
         </div>
       )}

@@ -1,61 +1,44 @@
-const Task = require('../models/task.js');
+const Task = require('../models/Task');
 
-exports.createTask = async (req,res)=>{
-    try{
-        const {title,duration,priority,effort}=req.body;
-        const task = await Task.create({
-            title,duration,priority,effort
-        });
-        res.status(201).json({
-            success : true,
-            message : "Task Created Successfully",
-            task
-        })
-    }catch(err){
-        res.status(500).json({
-            success : false,
-            message : "Failed to Create Task",
-            error : err.message
-        })
+exports.getTasks = async (req, res) => {
+    try {
+        const tasks = await Task.find().sort({ createdAt: -1 });
+        res.status(200).json({ success: true, tasks });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
-}
+};
 
-exports.getTasks = async (req,res)=>{
-    try{
-        const tasks = await Task.find();
-        res.status(200).json({
-            success : true,
-            message : "Task Fetched Successfully",
-            tasks
-        })
-    }catch(err){
-        res.status(500).json({
-            success : false,
-            message : "Failed to Fetch Task",
-            error : err.message 
-        })
+exports.createTask = async (req, res) => {
+    try {
+        const { title, duration, priority, isChippable } = req.body;
+        const task = await Task.create({ title, duration, priority, isChippable });
+        res.status(201).json({ success: true, task });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
-}
+};
 
-exports.deleteTask = async(req,res)=>{
-    const taskID = req.params.id;
-    try{
-        const task = await Task.findByIdAndDelete(taskID);
-        if(!task){
-            return res.status(404).json({
-                success : false,
-                message: "Task Not Found"
-            })
+exports.updateTask = async (req, res) => {
+    const { id } = req.params;
+    const { duration } = req.body;
+    try {
+        if (duration <= 2) {
+            await Task.findByIdAndDelete(id);
+            return res.status(200).json({ success: true, message: "Task Finalized" });
         }
-        res.status(200).json({
-            success : true,
-            message : "Task Deleted Successfully"
-        })
-    }catch(err){
-        res.status(500).json({
-            success : false,
-            message : "Failed to Delete Task",
-            error : err.message
-        })
+        const task = await Task.findByIdAndUpdate(id, { duration, isPartial: true }, { new: true });
+        res.status(200).json({ success: true, task });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
     }
-}
+};
+
+exports.deleteTask = async (req, res) => {
+    try {
+        await Task.findByIdAndDelete(req.params.id);
+        res.status(200).json({ success: true, message: "Deleted" });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+};

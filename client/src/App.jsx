@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
-
-
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import TimeSelection from "./components/TimeSelection";
 import Recommendation from "./components/Recommendation";
@@ -9,189 +7,104 @@ import BulkAddView from "./components/BulkAddView";
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [selectedTime, setSelectedTime] = useState(45);
-  const [taskID, setTaskID] = useState(0);
-  const [suggestion, setSuggestion] = useState(null);
-  const [hasStarted, setHasStarted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeSession, setActiveSession] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(30);
+  const [activeTask, setActiveTask] = useState(null);
+  const [startTime, setStartTime] = useState(null);
 
-  const navigate = useNavigate();
   const location = useLocation();
 
-
-  const isExecuteActive = location.pathname === "/";
-  const isInjectActive = location.pathname === "/add";
-
-  const handleCommence = (task) => {
-    setActiveSession({
-      task: task,
-      minutes: selectedTime,
-      seconds: 0,
-    });
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/tasks");
+      const data = await response.json();
+      setTasks(data.tasks || []);
+    } catch (err) { console.error("Sync Error"); }
   };
 
-  const recommendedTasks = useMemo(() => {
+  useEffect(() => { fetchTasks(); }, []);
+
+  const { fits, epics } = useMemo(() => {
     const priorityScore = { high: 3, medium: 2, low: 1 };
-    return tasks
-      .filter((t) => Number(t.duration) <= Number(selectedTime))
-      .sort((a, b) => {
-        const scoreB = priorityScore[b.priority?.toLowerCase()] || 0;
-        const scoreA = priorityScore[a.priority?.toLowerCase()] || 0;
-        
-      
-        return scoreB !== scoreA
-          ? scoreB - scoreA
-          : Number(b.duration) - Number(a.duration);
-      })
-      .slice(0, 5);
+    const sorted = [...tasks].sort((a, b) => {
+      const scoreB = priorityScore[b.priority] || 0;
+      const scoreA = priorityScore[a.priority] || 0;
+      return scoreB !== scoreA ? scoreB - scoreA : b.duration - a.duration;
+    });
+
+    return {
+      // Fits = tasks shorter than time OR long tasks marked as 'Chippable'
+      fits: sorted.filter(t => t.duration <= selectedTime || t.isChippable),
+      // Epics = long tasks that are NOT chippable
+      epics: sorted.filter(t => t.duration > selectedTime && !t.isChippable)
+    };
   }, [tasks, selectedTime]);
 
-  useEffect(() => {
-    if (hasStarted && recommendedTasks.length > 0) {
-      setSuggestion(recommendedTasks[taskID]);
-    } else {
-      setSuggestion(null);
-    }
-  }, [taskID, recommendedTasks, hasStarted]);
+  const handleStart = (task) => {
+    setActiveTask(task);
+    setStartTime(Date.now());
+  };
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/tasks");
-        const data = await response.json();
-        setTasks(data.tasks || []);
-      } catch (err) {
-        console.error("Database offline. Check your local server.");
-      }
-    };
+  const handleFinish = async () => {
+    const elapsed = Math.floor((Date.now() - startTime) / 60000);
+    const newDuration = activeTask.duration - elapsed;
+
+    await fetch(`http://localhost:3000/api/tasks/${activeTask._id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ duration: newDuration }),
+    });
+
+    setActiveTask(null);
+    setStartTime(null);
     fetchTasks();
-  }, []);
+  };
 
-  const handleBulkInject = async (newTasks) => {
-    setIsLoading(true);
-    try {
-      const requests = newTasks.map((task) =>
-        fetch("http://localhost:3000/api/tasks", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(task),
-        }),
-      );
-      const responses = await Promise.all(requests);
-      if (responses.every((res) => res.ok)) {
-        // Optimistic update of local state
-        setTasks((prev) => [...prev, ...newTasks]);
-        navigate("/");
-      }
-    } catch (err) {
-      alert("Sync Error: Could not reach the server.");
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDelete = async (id) => {
+    if (!window.confirm("Discard this objective?")) return;
+    await fetch(`http://localhost:3000/api/tasks/${id}`, { method: "DELETE" });
+    fetchTasks();
   };
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen text-[#2D3436] font-sans p-4 md:p-12 flex flex-col items-center selection:bg-[#6C5CE7] selection:text-white">
-      <div className="w-full max-w-xl bg-white shadow-2xl shadow-gray-200/50 border border-[#E0E0E0] p-8 md:p-12 rounded-[2.5rem] transition-all">
+    <div className="min-h-screen bg-[#0a0a0a] text-[#fafafa] px-6 py-12 md:py-24 font-sans uppercase tracking-tight">
+      <div className="max-w-[480px] mx-auto space-y-16">
         <Header />
+        
+        {!activeTask && (
+          <nav className="flex gap-12 border-b border-[#2e2d2b]">
+            <Link to="/" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative ${location.pathname === "/" ? "text-white" : "text-[#6b6a67]"}`}>
+              Focus {location.pathname === "/" && <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white" />}
+            </Link>
+            <Link to="/add" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative ${location.pathname === "/add" ? "text-white" : "text-[#6b6a67]"}`}>
+              Compile {location.pathname === "/add" && <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white" />}
+            </Link>
+          </nav>
+        )}
 
-        {/* Dynamic Nav Bar: Underline moves based on active route */}
-        <nav className="mt-10 flex gap-8 text-xs font-bold border-b border-[#F1F2F6] relative">
-          <Link
-            to="/"
-            className={`pb-4 transition-colors duration-300 relative ${
-              isExecuteActive ? "text-[#6C5CE7]" : "text-[#B2BEC3] hover:text-[#636E72]"
-            }`}
-          >
-            EXECUTE
-            {isExecuteActive && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#6C5CE7] rounded-full animate-in slide-in-from-left duration-300" />
-            )}
-          </Link>
-          <Link
-            to="/add"
-            className={`pb-4 transition-colors duration-300 relative ${
-              isInjectActive ? "text-[#6C5CE7]" : "text-[#B2BEC3] hover:text-[#636E72]"
-            }`}
-          >
-            INJECT TASKS
-            {isInjectActive && (
-              <div className="absolute bottom-0 left-0 w-full h-0.5 bg-[#6C5CE7] rounded-full animate-in slide-in-from-left duration-300" />
-            )}
-          </Link>
-        </nav>
-
-        <main className="mt-12">
+        <main className="animate-in fade-in duration-500">
           <Routes>
-            <Route
-              path="/"
-              element={
-                <div className="space-y-12">
-           
-                  {activeSession ? (
-                    <div className="text-center space-y-6 py-10 animate-in fade-in zoom-in duration-500">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#00B894]">Active Session</span>
-                      <h2 className="text-4xl font-black text-[#2D3436] leading-tight">
-                        {activeSession.task.title}
-                      </h2>
-                      <div className="text-6xl font-mono font-bold text-[#6C5CE7]">
-                        {activeSession.minutes}:00
-                      </div>
-                      <button 
-                        onClick={() => setActiveSession(null)}
-                        className="text-[10px] font-bold text-[#FF7675] uppercase tracking-widest border border-[#FF7675] px-6 py-2 rounded-full hover:bg-[#FF7675] hover:text-white transition-all"
-                      >
-                        Terminate Session
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <TimeSelection
-                        selectedTime={selectedTime}
-                        setSelectedTime={setSelectedTime}
-                        onStart={() => {
-                          setHasStarted(true);
-                          setTaskID(0);
-                        }}
-                      />
-                      <div className="pt-10 border-t border-[#F1F2F6]">
-                        {hasStarted && suggestion ? (
-                          <Recommendation
-                            suggestion={suggestion}
-                            selectedTime={selectedTime}
-                            next={() =>
-                              setTaskID(
-                                (prev) => (prev + 1) % recommendedTasks.length,
-                              )
-                            }
-                            onCommence={() => handleCommence(suggestion)}
-                          />
-                        ) : (
-                          <div className="text-sm text-[#B2BEC3] text-center font-medium italic py-4">
-                            Pick a duration to see your top objectives.
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
+            <Route path="/" element={
+              activeTask ? (
+                <div className="text-center space-y-16 py-24 animate-in zoom-in duration-1000">
+                  <div className="space-y-4">
+                    <p className="font-mono text-[10px] text-[#6b6a67] tracking-[0.4em]">NOW_WORKING_ON</p>
+                    <h2 className="text-5xl font-serif italic text-white lowercase">{activeTask.title}</h2>
+                  </div>
+                  <button onClick={handleFinish} className="border border-white px-12 py-4 font-mono text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all">
+                    I'M DONE FOR NOW
+                  </button>
                 </div>
-              }
-            />
-            <Route
-              path="/add"
-              element={
-                <BulkAddView onInject={handleBulkInject} loading={isLoading} />
-              }
-            />
+              ) : (
+                <div className="space-y-16">
+                  <TimeSelection selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
+                  <Recommendation fits={fits} epics={epics} onStart={handleStart} onDelete={handleDelete} />
+                </div>
+              )
+            } />
+            <Route path="/add" element={<BulkAddView onInject={fetchTasks} />} />
           </Routes>
         </main>
       </div>
-      
-      {/* Subtle Footer for ADHD reassurance */}
-      <footer className="mt-8 text-[9px] uppercase tracking-widest text-[#B2BEC3] font-bold">
-        Focus Engine v2.0 • Calm Tech Mode Active
-      </footer>
     </div>
   );
 }

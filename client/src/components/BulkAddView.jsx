@@ -60,7 +60,7 @@ export default function BulkAddView({ onInject, userKey }) {
             <input type="number" onChange={(e) => setDuration(e.target.value)} className="w-full bg-transparent border-b border-[#2e2d2b] py-2 font-mono text-sm text-white text-right outline-none" placeholder="00 MIN" />
           )}
           <div className="flex justify-between items-center">
-            <label className="font-mono text-[10px] text-[#6b6a67]">CHIP_OK?</label>
+            <label className="font-mono text-[10px] text-[#6b6a67]">Can the task be chipped ?</label>
             <div className="flex border border-[#2e2d2b]">
               <button onClick={() => setIsChippable(true)} className={`px-6 py-2 font-mono text-[10px] ${isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>YES</button>
               <button onClick={() => setIsChippable(false)} className={`px-6 py-2 font-mono text-[10px] ${!isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>NO</button>

@@ -17,14 +17,11 @@ function App() {
   const [startTime, setStartTime] = useState(null);
 
   const location = useLocation();
-
-  // --- CONFIGURATION ---
-  // Ensure your .env has: VITE_API=http://localhost:3000/api/tasks
-  const API_BASE = import.meta.env.VITE_API;
+  const API_BASE = "https://donext1.onrender.com/api/tasks";
 
   // --- SYNC LOGIC ---
   const fetchTasks = async () => {
-    if (!userKey || !API_BASE) return;
+    if (!userKey) return;
     try {
       const response = await fetch(API_BASE, {
         headers: { "x-flux-key": userKey }
@@ -80,35 +77,27 @@ function App() {
     const elapsed = Math.floor((Date.now() - startTime) / 60000);
     const newDuration = activeTask.duration - elapsed;
 
-    try {
-      await fetch(`${API_BASE}/${activeTask._id}`, {
-        method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json", 
-          "x-flux-key": userKey 
-        },
-        body: JSON.stringify({ duration: newDuration }),
-      });
+    await fetch(`${API_BASE}/${activeTask._id}`, {
+      method: "PATCH",
+      headers: { 
+        "Content-Type": "application/json", 
+        "x-flux-key": userKey 
+      },
+      body: JSON.stringify({ duration: newDuration }),
+    });
 
-      setActiveTask(null);
-      setStartTime(null);
-      fetchTasks();
-    } catch (err) {
-      console.error("UPDATE_FAILED");
-    }
+    setActiveTask(null);
+    setStartTime(null);
+    fetchTasks();
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("DISCARD_OBJECTIVE?")) return;
-    try {
-      await fetch(`${API_BASE}/${id}`, { 
-        method: "DELETE",
-        headers: { "x-flux-key": userKey }
-      });
-      fetchTasks();
-    } catch (err) {
-      console.error("DELETE_FAILED");
-    }
+    await fetch(`${API_BASE}/${id}`, { 
+      method: "DELETE",
+      headers: { "x-flux-key": userKey }
+    });
+    fetchTasks();
   };
 
   // --- VIEW: IDENTITY CHALLENGE (AUTH WALL) ---
@@ -116,7 +105,7 @@ function App() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 text-white uppercase tracking-tight">
         <form onSubmit={handleLogin} className="w-full max-w-sm space-y-12 animate-in fade-in zoom-in duration-700">
-          <div className="space-y-2 text-center sm:text-left">
+          <div className="space-y-2">
             <h1 className="text-4xl font-serif italic lowercase">Flux<span className="text-[#6b6a67] not-italic">_</span></h1>
             <p className="font-mono text-[9px] text-[#6b6a67] tracking-[0.3em]">IDENTITY_CHALLENGE</p>
           </div>
@@ -130,13 +119,13 @@ function App() {
               value={entryKey}
               onChange={(e) => setEntryKey(e.target.value)}
             />
-            <div className="space-y-3 p-5 border border-[#2e2d2b] bg-[#111110]">
+            <div className="space-y-3 p-4 border border-[#2e2d2b] bg-[#111110]">
               <p className="font-mono text-[8px] leading-relaxed text-[#6b6a67] tracking-wider">
                 <span className="text-white">NOTICE //</span> YOUR KEY IS A PRIVATE ANCHOR. 
                 FLUX DOES NOT STORE PASSWORDS. THE STRING ENTERED WILL CREATE YOUR VAULT. 
                 IF LOST, DATA RECOVERY IS IMPOSSIBLE.
-                <br/><br/>
-                <span className="text-white">NEW USERS //</span> ANY UNIQUE STRING WORKS AS A KEY (E.G. "MY_VAULT_77").
+<br/><br/>
+                IF YOU'RE A NEW USER, ANY RANDOM STRING WILL WORK AS A KEY. FOR EXAMPLE: <span className="text-white">"MY_SECRET_KEY_123"</span>
               </p>
             </div>
           </div>
@@ -173,7 +162,7 @@ function App() {
                 <div className="text-center space-y-16 py-24 animate-in zoom-in duration-1000">
                   <div className="space-y-4">
                     <p className="font-mono text-[10px] text-[#6b6a67] tracking-[0.4em]">NOW_WORKING_ON</p>
-                    <h2 className="text-5xl font-serif italic text-white lowercase leading-tight px-4">{activeTask.title}</h2>
+                    <h2 className="text-5xl font-serif italic text-white lowercase">{activeTask.title}</h2>
                   </div>
                   <button onClick={handleFinish} className="border border-white px-12 py-4 font-mono text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all">
                     I'M DONE FOR NOW

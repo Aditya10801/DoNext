@@ -18,7 +18,8 @@ exports.createTask = async (req, res) => {
   const userKey = getAuthKey(req);
   if (!userKey) return res.status(401).json({ success: false, error: 'Missing x-flux-key header' });
   try {
-    const task = await Task.create({ ...req.body, userKey });
+    const duration = Number(req.body.duration);
+    const task = await Task.create({ ...req.body, duration, originalDuration: duration, userKey });
     res.status(201).json({ success: true, task });
   } catch (err) {
     console.error('createTask error:', err);

@@ -45,9 +45,6 @@ export default function TimeSelection({ selectedTime, setSelectedTime, onStart }
         )}
       </div>
 
-      <button onClick={onStart} className="w-full bg-[#fafafa] text-[#0a0a0a] py-5 text-[11px] font-bold tracking-[0.3em] hover:bg-white transition-colors">
-        FIND MY NEXT TASK →
-      </button>
     </div>
   );
 }

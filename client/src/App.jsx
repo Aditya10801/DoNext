@@ -13,7 +13,6 @@ function App() {
   const [entryKey, setEntryKey] = useState("");
   const [tasks, setTasks] = useState([]);
   const [selectedTime, setSelectedTime] = useState(30);
-  const [showTimeSelection, setShowTimeSelection] = useState(true);
   const [activeTask, setActiveTask] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -197,16 +196,7 @@ function App() {
                   <p className="font-mono text-[10px] text-[#6b6a67] tracking-[0.3em] text-center py-12">LOADING...</p>
                 ) : (
                   <div className="space-y-16">
-                    {showTimeSelection ? (
-                      <TimeSelection selectedTime={selectedTime} setSelectedTime={(t) => { setSelectedTime(t); setShowTimeSelection(false); }} />
-                    ) : (
-                      <button
-                        onClick={() => setShowTimeSelection(true)}
-                        className="font-mono text-[9px] text-[#3a3a3a] tracking-[0.2em] hover:text-white transition-colors"
-                      >
-                        ← CHANGE_TIME // {selectedTime} MIN
-                      </button>
-                    )}
+                    <TimeSelection selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
                     <Recommendation fits={fits} epics={epics} onStart={handleStart} onDelete={handleDelete} />
                   </div>
                 )

@@ -11,9 +11,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'x-flux-key'],
 }));
 
-// Handle preflight for all routes
-app.options('*', cors());
-
 app.use(express.json());
 
 // --- DB ---

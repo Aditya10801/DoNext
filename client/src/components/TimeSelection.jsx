@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-export default function TimeSelection({ selectedTime, setSelectedTime, onStart }) {
+export default function TimeSelection({
+  selectedTime,
+  setSelectedTime,
+  onStart,
+}) {
   const options = [15, 30, 45, 60];
   const [isCustom, setIsCustom] = useState(false);
 
@@ -11,9 +15,14 @@ export default function TimeSelection({ selectedTime, setSelectedTime, onStart }
           {options.map((t) => (
             <button
               key={t}
-              onClick={() => { setSelectedTime(t); setIsCustom(false); }}
+              onClick={() => {
+                setSelectedTime(t);
+                setIsCustom(false);
+              }}
               className={`py-4 font-mono text-sm transition-all ${
-                selectedTime === t && !isCustom ? "bg-[#fafafa] text-[#0a0a0a]" : "bg-[#0a0a0a] text-[#6b6a67] hover:text-[#fafafa]"
+                selectedTime === t && !isCustom
+                  ? "bg-[#fafafa] text-[#0a0a0a]"
+                  : "bg-[#0a0a0a] text-[#6b6a67] hover:text-[#fafafa]"
               }`}
             >
               {t}
@@ -22,7 +31,9 @@ export default function TimeSelection({ selectedTime, setSelectedTime, onStart }
           <button
             onClick={() => setIsCustom(true)}
             className={`py-4 font-mono text-sm transition-all ${
-              isCustom ? "bg-[#fafafa] text-[#0a0a0a]" : "bg-[#0a0a0a] text-[#6b6a67]"
+              isCustom
+                ? "bg-[#fafafa] text-[#0a0a0a]"
+                : "bg-[#0a0a0a] text-[#6b6a67]"
             }`}
           >
             {isCustom ? ".." : "+"}
@@ -32,7 +43,9 @@ export default function TimeSelection({ selectedTime, setSelectedTime, onStart }
         {isCustom && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center border border-[#2e2d2b] bg-[#111110] px-4">
-              <span className="font-mono text-[9px] text-[#6b6a67] mr-4">SET_INTERVAL:</span>
+              <span className="font-mono text-[9px] text-[#6b6a67] mr-4">
+                SET_INTERVAL:
+              </span>
               <input
                 type="number"
                 autoFocus
@@ -44,7 +57,6 @@ export default function TimeSelection({ selectedTime, setSelectedTime, onStart }
           </div>
         )}
       </div>
-
     </div>
   );
 }

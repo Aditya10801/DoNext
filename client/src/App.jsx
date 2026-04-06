@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import TimeSelection from "./components/TimeSelection";
 import Recommendation from "./components/Recommendation";
 import BulkAddView from "./components/BulkAddView";
+import VaultView from "./components/VaultView";
 
 const API_BASE = "https://donext1.onrender.com/api/tasks";
 
@@ -12,6 +13,7 @@ function App() {
   const [entryKey, setEntryKey] = useState("");
   const [tasks, setTasks] = useState([]);
   const [selectedTime, setSelectedTime] = useState(30);
+  const [showTimeSelection, setShowTimeSelection] = useState(true);
   const [activeTask, setActiveTask] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -163,6 +165,9 @@ function App() {
             <Link to="/add" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative transition-colors ${location.pathname === "/add" ? "text-white" : "text-[#6b6a67]"}`}>
               Compile {location.pathname === "/add" && <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white" />}
             </Link>
+            <Link to="/vault" className={`pb-2 text-[10px] font-bold tracking-[0.2em] relative transition-colors ${location.pathname === "/vault" ? "text-white" : "text-[#6b6a67]"}`}>
+              Vault {location.pathname === "/vault" && <div className="absolute bottom-0 left-0 w-full h-[1.5px] bg-white" />}
+            </Link>
           </nav>
         )}
 
@@ -192,13 +197,23 @@ function App() {
                   <p className="font-mono text-[10px] text-[#6b6a67] tracking-[0.3em] text-center py-12">LOADING...</p>
                 ) : (
                   <div className="space-y-16">
-                    <TimeSelection selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
+                    {showTimeSelection ? (
+                      <TimeSelection selectedTime={selectedTime} setSelectedTime={(t) => { setSelectedTime(t); setShowTimeSelection(false); }} />
+                    ) : (
+                      <button
+                        onClick={() => setShowTimeSelection(true)}
+                        className="font-mono text-[9px] text-[#3a3a3a] tracking-[0.2em] hover:text-white transition-colors"
+                      >
+                        ← CHANGE_TIME // {selectedTime} MIN
+                      </button>
+                    )}
                     <Recommendation fits={fits} epics={epics} onStart={handleStart} onDelete={handleDelete} />
                   </div>
                 )
               }
             />
             <Route path="/add" element={<BulkAddView onInject={fetchTasks} userKey={userKey} apiBase={API_BASE} />} />
+            <Route path="/vault" element={<VaultView tasks={tasks} onDelete={handleDelete} />} />
           </Routes>
         </main>
 

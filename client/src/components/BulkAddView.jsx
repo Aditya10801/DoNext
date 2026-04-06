@@ -8,6 +8,7 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
   const [isChippable, setIsChippable] = useState(false);
   const [queue, setQueue] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   const addToQueue = () => {
     if (!title.trim() || !duration) return;
@@ -18,21 +19,30 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
 
   const handleSave = async () => {
     setLoading(true);
+    setSaveError(null);
     try {
-      const requests = queue.map(t => 
-        fetch(apiBase, {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "x-flux-key": userKey
-          },
-          body: JSON.stringify(t),
-        })
+      const results = await Promise.all(
+        queue.map((t) =>
+          fetch(apiBase, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-flux-key": userKey,
+            },
+            body: JSON.stringify(t),
+          }).then((res) => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+        )
       );
-      await Promise.all(requests);
+      console.log("Saved tasks:", results);
       setQueue([]);
       onInject();
-    } catch (e) { console.error("Save failed"); }
+    } catch (e) {
+      console.error("Save failed:", e);
+      setSaveError("Failed to save. Check server logs.");
+    }
     setLoading(false);
   };
 
@@ -43,6 +53,7 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
           autoFocus
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && addToQueue()}
           placeholder="Define objective..."
           className="w-full bg-transparent border-b border-[#2e2d2b] py-4 text-3xl font-serif focus:border-white focus:outline-none placeholder:text-[#2e2d2b] text-white"
         />
@@ -50,33 +61,54 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
           <div className="flex justify-between items-center">
             <label className="font-mono text-[10px] text-[#6b6a67]">DURATION</label>
             <div className="flex border border-[#2e2d2b]">
-              {[15, 30, 45, 60].map(d => (
-                <button key={d} onClick={() => {setDuration(d); setIsCustom(false)}} className={`px-4 py-2 font-mono text-[10px] ${duration === d && !isCustom ? "bg-white text-black" : "text-[#6b6a67]"}`}>{d}</button>
+              {[15, 30, 45, 60].map((d) => (
+                <button key={d} onClick={() => { setDuration(d); setIsCustom(false); }}
+                  className={`px-4 py-2 font-mono text-[10px] ${duration === d && !isCustom ? "bg-white text-black" : "text-[#6b6a67]"}`}>
+                  {d}
+                </button>
               ))}
-              <button onClick={() => setIsCustom(true)} className={`px-4 py-2 font-mono text-[10px] ${isCustom ? "bg-white text-black" : "text-[#6b6a67]"}`}>+</button>
+              <button onClick={() => setIsCustom(true)}
+                className={`px-4 py-2 font-mono text-[10px] ${isCustom ? "bg-white text-black" : "text-[#6b6a67]"}`}>
+                +
+              </button>
             </div>
           </div>
           {isCustom && (
-            <input type="number" onChange={(e) => setDuration(e.target.value)} className="w-full bg-transparent border-b border-[#2e2d2b] py-2 font-mono text-sm text-white text-right outline-none" placeholder="00 MIN" />
+            <input type="number" onChange={(e) => setDuration(e.target.value)}
+              className="w-full bg-transparent border-b border-[#2e2d2b] py-2 font-mono text-sm text-white text-right outline-none"
+              placeholder="00 MIN" />
           )}
           <div className="flex justify-between items-center">
-            <label className="font-mono text-[10px] text-[#6b6a67]">Can the task be chipped ?</label>
+            <label className="font-mono text-[10px] text-[#6b6a67]">CHIPPABLE?</label>
             <div className="flex border border-[#2e2d2b]">
-              <button onClick={() => setIsChippable(true)} className={`px-6 py-2 font-mono text-[10px] ${isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>YES</button>
-              <button onClick={() => setIsChippable(false)} className={`px-6 py-2 font-mono text-[10px] ${!isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>NO</button>
+              <button onClick={() => setIsChippable(true)}
+                className={`px-6 py-2 font-mono text-[10px] ${isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>YES</button>
+              <button onClick={() => setIsChippable(false)}
+                className={`px-6 py-2 font-mono text-[10px] ${!isChippable ? "bg-white text-black" : "text-[#6b6a67]"}`}>NO</button>
             </div>
           </div>
           <div className="flex justify-between items-center">
             <label className="font-mono text-[10px] text-[#6b6a67]">PRIORITY</label>
             <div className="flex border border-[#2e2d2b]">
-              {['low', 'medium', 'high'].map(p => (
-                <button key={p} onClick={() => setPriority(p)} className={`px-4 py-2 font-mono text-[10px] uppercase ${priority === p ? "bg-white text-black" : "text-[#6b6a67]"}`}>{p}</button>
+              {["low", "medium", "high"].map((p) => (
+                <button key={p} onClick={() => setPriority(p)}
+                  className={`px-4 py-2 font-mono text-[10px] uppercase ${priority === p ? "bg-white text-black" : "text-[#6b6a67]"}`}>
+                  {p}
+                </button>
               ))}
             </div>
           </div>
         </div>
-        <button onClick={addToQueue} className="w-full border border-white py-4 text-[11px] font-bold tracking-[0.1em] hover:bg-white hover:text-black transition-all">ADD TO LIST</button>
+        <button onClick={addToQueue}
+          className="w-full border border-white py-4 text-[11px] font-bold tracking-[0.1em] hover:bg-white hover:text-black transition-all">
+          ADD TO LIST
+        </button>
       </div>
+
+      {saveError && (
+        <p className="font-mono text-[9px] text-red-400 tracking-wider">{saveError}</p>
+      )}
+
       {queue.length > 0 && (
         <div className="space-y-6 pt-6 border-t border-[#2e2d2b]">
           <div className="divide-y divide-[#2e2d2b]">
@@ -84,13 +116,19 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
               <div key={i} className="py-4 flex justify-between items-start">
                 <div className="space-y-1 text-white">
                   <p className="text-sm lowercase">{t.title}</p>
-                  <p className="font-mono text-[9px] text-[#6b6a67]">{t.duration}M // {t.priority} {t.isChippable && "// CHIP"}</p>
+                  <p className="font-mono text-[9px] text-[#6b6a67]">
+                    {t.duration}M // {t.priority} {t.isChippable && "// CHIP"}
+                  </p>
                 </div>
-                <button onClick={() => setQueue(queue.filter((_, idx) => idx !== i))} className="text-[#6b6a67]">×</button>
+                <button onClick={() => setQueue(queue.filter((_, idx) => idx !== i))} className="text-[#6b6a67] hover:text-white">×</button>
               </div>
             ))}
           </div>
-          <button onClick={handleSave} className="w-full bg-white text-black py-5 font-bold text-[11px] tracking-[0.2em]">{loading ? "SAVING..." : "SAVE EVERYTHING"}</button>
+          <button onClick={handleSave}
+            className="w-full bg-white text-black py-5 font-bold text-[11px] tracking-[0.2em] disabled:opacity-50"
+            disabled={loading}>
+            {loading ? "SAVING..." : "SAVE EVERYTHING"}
+          </button>
         </div>
       )}
     </div>

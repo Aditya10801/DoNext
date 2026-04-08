@@ -14,11 +14,16 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
     setQueue([...queue, { title, duration: Number(duration), priority, isChippable }]);
     setTitle("");
     setIsChippable(false);
+    setIsCustom(false); // Reset custom view after adding
   };
 
   const handleSave = async () => {
     try {
-      await Promise.all(queue.map((t) => fetch(apiBase, { method: "POST", headers: { "Content-Type": "application/json", "x-flux-key": userKey }, body: JSON.stringify(t) })));
+      await Promise.all(queue.map((t) => fetch(apiBase, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json", "x-flux-key": userKey }, 
+        body: JSON.stringify(t) 
+      })));
       setQueue([]);
       onInject();
     } catch (e) { console.error(e); }
@@ -41,15 +46,36 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
           <div className="space-y-5 md:space-y-6 pt-4 md:pt-6 border-t border-white/5">
             <div className="space-y-2 md:space-y-3">
               <label className="text-[9px] md:text-[10px] font-bold text-white/40 uppercase tracking-widest">Duration</label>
-              <div className="grid grid-cols-4 gap-2 md:gap-3">
+              <div className="grid grid-cols-5 gap-2 md:gap-3">
                 {[15, 30, 45, 60].map((d) => (
-                  <button key={d} onClick={() => { setDuration(d); setIsCustom(false); }} className={`h-10 md:h-12 rounded-[12px] md:rounded-[16px] font-black text-xs md:text-sm transition-all border ${duration === d && !isCustom ? "bg-[#E2FF31] border-[#E2FF31] text-black shadow-md scale-105" : "bg-white/5 border-transparent text-white hover:bg-white/10"}`}>
+                  <button 
+                    key={d} 
+                    onClick={() => { setDuration(d); setIsCustom(false); }} 
+                    className={`h-10 md:h-12 rounded-[12px] md:rounded-[16px] font-black text-xs md:text-sm transition-all border ${duration === d && !isCustom ? "bg-[#E2FF31] border-[#E2FF31] text-black shadow-md scale-105" : "bg-white/5 border-transparent text-white hover:bg-white/10"}`}
+                  >
                     {d}
                   </button>
                 ))}
+                {/* RESTORED CUSTOM TRIGGER */}
+                <button 
+                  onClick={() => setIsCustom(true)} 
+                  className={`h-10 md:h-12 rounded-[12px] md:rounded-[16px] font-black text-xs md:text-sm transition-all border ${isCustom ? "bg-[#D8B4FE] border-[#D8B4FE] text-black shadow-md scale-105" : "bg-white/5 border-transparent text-white hover:bg-white/10"}`}
+                >
+                  +
+                </button>
               </div>
+              
+              {/* RESTORED CUSTOM INPUT FIELD */}
               {isCustom && (
-                <input type="number" onChange={(e) => setDuration(e.target.value)} className="w-full bg-[#0A0A0C] border border-white/10 rounded-[12px] md:rounded-[16px] h-12 md:h-14 px-4 md:px-5 text-white text-base md:text-lg font-black outline-none focus:border-[#E2FF31] shadow-inner" placeholder="00 mins" />
+                <div className="animate-in slide-in-from-top-2 duration-300">
+                  <input 
+                    type="number" 
+                    autoFocus
+                    onChange={(e) => setDuration(e.target.value)} 
+                    className="w-full bg-[#0A0A0C] border border-white/10 rounded-[12px] md:rounded-[16px] h-12 md:h-14 px-4 md:px-5 text-white text-base md:text-lg font-black outline-none focus:border-[#E2FF31] shadow-inner" 
+                    placeholder="Enter minutes..." 
+                  />
+                </div>
               )}
             </div>
 
@@ -58,11 +84,16 @@ export default function BulkAddView({ onInject, userKey, apiBase }) {
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {["low", "medium", "high"].map((p) => {
                   const isActive = priority === p;
-                  const themeBg = getPlayfulTheme(p).split(' ').find(c => c.startsWith('from-'));
-                  const themeTo = getPlayfulTheme(p).split(' ').find(c => c.startsWith('to-'));
+                  const themeClasses = getPlayfulTheme(p).split(' ');
+                  const fromColor = themeClasses.find(c => c.startsWith('from-'));
+                  const toColor = themeClasses.find(c => c.startsWith('to-'));
                   
                   return (
-                    <button key={p} onClick={() => setPriority(p)} className={`h-10 md:h-12 rounded-[12px] md:rounded-[16px] font-black text-[9px] md:text-[10px] uppercase tracking-widest transition-all border ${isActive ? `bg-gradient-to-br ${themeBg} ${themeTo} border-transparent text-black shadow-md scale-105` : "bg-white/5 border-transparent text-white hover:bg-white/10"}`}>
+                    <button 
+                      key={p} 
+                      onClick={() => setPriority(p)} 
+                      className={`h-10 md:h-12 rounded-[12px] md:rounded-[16px] font-black text-[9px] md:text-[10px] uppercase tracking-widest transition-all border ${isActive ? `bg-gradient-to-br ${fromColor} ${toColor} border-transparent text-black shadow-md scale-105` : "bg-white/5 border-transparent text-white hover:bg-white/10"}`}
+                    >
                       {p}
                     </button>
                   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import Header from "./components/Header";
 import TimeSelection from "./components/TimeSelection";
 import Recommendation from "./components/Recommendation";
@@ -212,6 +213,7 @@ function App() {
           <span className="tracking-[0.2em]">©2026_FLUX_UNIT</span>
         </footer>
       </div>
+      <Analytics />
     </div>
   );
 }

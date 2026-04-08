@@ -1,21 +1,21 @@
 # FLUX
-### PRECISION_FOCUS_UNIT
+### ELECTRIC_FLOW_TERMINAL
 
-> *"Nothing decorative. Nothing gratuitous. Every pixel earns its place."*
+> *"Maximum Saturation. Zero Friction. High-Velocity Execution."*
 
-Flux is a high-end, monochrome productivity terminal designed for deep work and intentional execution. It ignores the traditional "to-do list" anxiety of deadlines and ticking clocks, instead treating tasks as liquid volume that decays as you focus.
+Flux is a high-octane, Neo-Brutalist productivity engine built for the age of overstimulation. It discards monochrome minimalism in favor of **Electric Gradients**, **Tactile Surfaces**, and **Liquid Decay** logic. Flux doesn't just track time; it visualizes your focus as physical volume that burns away in real-time.
 
-Built with a Swiss-design aesthetic, Flux uses high-contrast typography and a **Window vs. Horizon** logic to help navigate cognitive load and ADHD-driven choice paralysis.
+Built with a bold, Gen-Z aesthetic, Flux utilizes high-impact typography and **Watermark Geometry** to help navigate cognitive load and turn deep work into a high-fidelity experience.
 
 ---
 
 ## CORE PHILOSOPHY
 
-**Liquid Tasks** — Tasks aren't binary. They are reservoirs of time. If you work on a 60m task for 20m and stop, the task remains in your collection with 40m left.
+**Liquid Decay** — Tasks are reservoirs of time. If you chip away at a 60m project for 25m, Flux recalibrates instantly, leaving 35m in your vault. 
 
-**The Ghost Timer** — No visible countdowns. Flux records your start time and calculates "decay" only when you finish, protecting your flow state from time-anxiety.
+**The Precision Countdown** — Real-time visual feedback. A high-contrast countdown keeps you anchored in the present, while a draining progress bar visualizes the "decay" of your objective.
 
-**Identity Anchoring** — No traditional signup. Your Private Key acts as a stateless vault. Entering a unique string initializes your private database instantly.
+**Private Key Access** — Stateless, friction-free identity. Your Private Key is the only thing standing between you and your encrypted task vault. No emails, no passwords, just the string.
 
 ---
 
@@ -23,72 +23,35 @@ Built with a Swiss-design aesthetic, Flux uses high-contrast typography and a **
 
 | Layer | Technology |
 |---|---|
-| Frontend | React, Tailwind CSS, React Router |
-| Backend | Node.js, Express |
-| Database | MongoDB (Mongoose) |
-| Typography | Playfair Display (Serif) & DM Mono (Monospace) |
+| **Frontend** | React 18, Tailwind CSS, Framer Motion |
+| **Backend** | Node.js, Express |
+| **Database** | MongoDB (Mongoose) |
+| **Aesthetic** | Neo-Brutalism, Electric Gradients, Glassmorphism |
 
 ---
 
 ## MODULES
 
-### `01` FOCUS — Intent
+### `01` FOCUS — The Interface
 
-Select a time interval (`15` / `30` / `45` / `60` or Custom). Flux filters your collection into two layers:
+Select your current time-block. Flux dynamically segments your reality into two layers:
 
-- **Fits Your Window** — Objectives shorter than your interval, or marked as `Chip_OK`.
-- **The Horizon** — Long-form projects. Use *"Work on this"* to chip away at their total duration across multiple sessions.
+- **The Window** — Tasks that fit perfectly into your selected slot. Tactical, immediate execution.
+- **The Horizon** — Massive projects visualized with abstract watermarks. Chipping away at these is the path to long-term progress.
 
-### `02` COMPILE — Collection
+### `02` COMPILE — The Queue
 
-A minimal command-line style entry system for bulk-adding objectives.
+A command-center for high-velocity entry. 
 
-- **`Chip_OK` Toggle** — Mark a task as a project that can be broken into sessions.
-- **Priority Matrix** — Monochrome selectors for `Low` / `Medium` / `High` urgency.
+- **Chippable Toggle** — Mark an objective as a long-form project that survives multiple sessions.
+- **Priority Matrix** — Color-coded urgency from **Electric Lime** (High) to **Acid Peach** (Medium).
 
-### `03` FLOW — Execution
+### `03` FLOW — The Session
 
-A distraction-free interface showing only the task title in elegant serif.
+The terminal enters Focus Mode. The UI strips back to show only the task title and a massive, ticking countdown.
 
-- **Start** — Records the entry timestamp and enters Deep Focus mode.
-- **Finish** — Calculates elapsed time and updates the task's remaining volume via Liquid Decay.
-
----
-
-## SETUP
-
-**Prerequisites**
-- Node.js `v16+`
-- MongoDB (local instance or Atlas cluster)
-
-### 1. Backend
-
-```bash
-cd server
-npm install
-touch .env
-```
-
-Add to your `.env`:
-
-```
-PORT=3000
-DB=your_mongodb_uri
-```
-
-Start the server:
-
-```bash
-npm start
-```
-
-### 2. Frontend
-
-```bash
-cd client
-npm install
-npm run dev
-```
+- **Start Flow** — Initializes the countdown based on remaining liquid volume.
+- **Power Off** — Calculates exact elapsed time down to the second and updates the database via Liquid Decay.
 
 ---
 
@@ -96,32 +59,33 @@ npm run dev
 
 | Method | Endpoint | Auth Header | Description |
 |---|---|---|---|
-| `GET` | `/api/tasks` | `x-flux-key` | Fetch private collection |
+| `GET` | `/api/tasks` | `x-flux-key` | Sync private collection |
 | `POST` | `/api/tasks` | `x-flux-key` | Inject new objective |
-| `PATCH` | `/api/tasks/:id` | `x-flux-key` | Recalibrate volume (Liquid Decay) |
-| `DELETE` | `/api/tasks/:id` | `x-flux-key` | Discard an objective |
+| `PATCH` | `/api/tasks/:id` | `x-flux-key` | Recalibrate volume (Decimal Decay) |
+| `DELETE` | `/api/tasks/:id` | `x-flux-key` | Discard objective |
 
 ---
 
 ## VISUAL GUIDELINES
 
-| Token | Value | Usage |
+| Token | Value | Identity |
 |---|---|---|
-| Background | `#0a0a0a` | Near Black — base surface |
-| Primary | `#fafafa` | Off-White — text, borders, active states |
-| Metadata | `#6b6a67` | Muted Gray — labels, secondary info |
-| Structural | `1px solid #2e2d2b` | Dark Gray — dividers, card borders |
+| **Surface** | `#0A0A0C` | Deep Space — the base layer |
+| **High Priority** | `Linear: #E2FF31 → #ADDB00` | Electric Lime — action required |
+| **Mid Priority** | `Linear: #D8B4FE → #A874FA` | Cyber Purple — steady progress |
+| **Low Priority** | `Linear: #FFC29F → #FF8B3D` | Acid Peach — secondary depth |
+| **Accent** | `Linear: #8DE4FF → #25BAFA` | Sky Cyan — metadata and info |
 
 ---
 
-## ROADMAP
+## SYSTEM STATUS
 
-- [ ] Private Key authentication with per-key MongoDB namespacing
-- [ ] Liquid Decay — automatic volume recalculation on session end
-- [ ] Chip_OK task splitting across sessions
-- [ ] Horizon view for long-form project tracking
-- [ ] Offline mode with local-first sync
+- [x] **Private Key Namespacing** — Stateless database initialization.
+- [x] **Liquid Decay** — Decimal-perfect volume recalculation on session end.
+- [x] **Geometric Watermarks** — Distinct abstract shapes for Focus, Window, and Horizon.
+- [x] **Mobile-Fluid Layout** — Fully responsive, scroll-locked terminal design.
+- [ ] **Offline Burst Mode** — Local-first execution with delayed sync.
 
 ---
 
-*Flux v2.0 // © 2026 // STABLE_READY*
+*Flux v3.5 // © 2026 // SYSTEM_ACTIVE*

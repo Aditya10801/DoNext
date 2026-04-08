@@ -59,7 +59,7 @@ function ActiveSession({ activeTask, startTime, onFinish }) {
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E2FF31]/10 border border-[#E2FF31]/20">
           <span className="w-2 h-2 rounded-full bg-[#E2FF31] animate-pulse" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E2FF31]">System_Active</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#E2FF31]">Flow Active</span>
         </div>
         <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase drop-shadow-2xl">
           {activeTask.title}
@@ -187,7 +187,7 @@ function App() {
       <form onSubmit={(e) => { e.preventDefault(); const k = entryKey.trim(); localStorage.setItem("FLUX_KEY", k); setUserKey(k); }} className="w-full max-w-sm space-y-8">
         <h1 className="text-6xl font-black text-center text-[#E2FF31] tracking-tighter italic">flux.</h1>
         <div className="bg-[#121216] rounded-[40px] p-10 space-y-6 shadow-2xl border border-white/5">
-          <input type="password" placeholder="Key" className="w-full bg-[#0A0A0C] rounded-2xl py-4 px-4 text-center outline-none border border-white/5 focus:ring-2 focus:ring-[#E2FF31]/30 transition-all" value={entryKey} onChange={(e) => setEntryKey(e.target.value)} />
+          <input type="password" placeholder="Private Key" className="w-full bg-[#0A0A0C] rounded-2xl py-4 px-4 text-center outline-none border border-white/5 focus:ring-2 focus:ring-[#E2FF31]/30 transition-all" value={entryKey} onChange={(e) => setEntryKey(e.target.value)} />
           <button className="w-full py-4 rounded-2xl bg-[#E2FF31] text-black font-black uppercase tracking-widest active:scale-95 transition-all">Enter Vault</button>
         </div>
       </form>
